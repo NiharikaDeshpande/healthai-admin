@@ -561,7 +561,9 @@ section.block{margin-bottom:40px}
     getFirestore, 
     collection, 
     collectionGroup, 
-    getDocs 
+    getDocs,
+    doc,
+    getDoc 
   } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -754,6 +756,73 @@ section.block{margin-bottom:40px}
     triggerBarAnimations();
   }
 
+  // --- Participant Search Listener ---
+  function setupParticipantSearch() {
+    const searchInput = document.querySelector('input[placeholder*="Search participant ID"]');
+    if (!searchInput || searchInput.dataset.searchBound) return;
+    searchInput.dataset.searchBound = "true";
+
+    searchInput.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const queryId = searchInput.value.trim();
+
+        if (!queryId) {
+          syncDashboard();
+          return;
+        }
+
+        try {
+          const userRef = doc(db, "users", queryId);
+          const userSnap = await getDoc(userRef);
+
+          if (!userSnap.exists()) {
+            alert(`No participant found with ID: "${queryId}"\n\nPlease check the Firestore 'users' collection for the valid document ID.`);
+            return;
+          }
+
+          const assessSnap = await getDocs(collection(db, "users", queryId, "assessments"));
+          const progSnap = await getDocs(collection(db, "users", queryId, "progress"));
+
+          let postScore = "N/A";
+          let preScore = "N/A";
+
+          assessSnap.forEach((docSnap) => {
+            const d = docSnap.data();
+            const total = d.totalQuestions || 5;
+            const norm = ((d.score || 0) / total) * 10;
+            if (d.assessmentType === 'post_assessment' || docSnap.id === 'post_assessment') {
+              postScore = `${norm.toFixed(1)}/10`;
+            } else if (d.assessmentType === 'pre_assessment' || docSnap.id === 'pre_assessment') {
+              preScore = `${norm.toFixed(1)}/10`;
+            }
+          });
+
+          const completedModules = [];
+          progSnap.forEach((docSnap) => {
+            const d = docSnap.data();
+            if (d.completed) {
+              const tId = d.topicId || docSnap.id;
+              completedModules.push(topicMap[tId] || tId);
+            }
+          });
+
+          alert(
+            `Participant Details [${queryId}]\n` +
+            `----------------------------------\n` +
+            `• Pre-Assessment: ${preScore}\n` +
+            `• Post-Assessment: ${postScore}\n` +
+            `• Modules Completed (${completedModules.length}):\n  - ${completedModules.join('\n  - ') || 'None yet'}`
+          );
+
+        } catch (err) {
+          console.error("Search error:", err);
+          alert("Error retrieving participant details. Please verify permissions.");
+        }
+      }
+    });
+  }
+
   // --- Auth UI Management ---
   function showAuthGate() {
     let gate = document.getElementById('authGateOverlay');
@@ -810,6 +879,7 @@ section.block{margin-bottom:40px}
         hideAuthGate();
         setAdminProfile(authorizedAdmins[email]);
         syncDashboard();
+        setupParticipantSearch();
       } else {
         showAuthGate();
         const errEl = document.getElementById('authErrorMsg');
