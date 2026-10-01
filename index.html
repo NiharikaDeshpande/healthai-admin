@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>HealthAI Admin — Workshop Analytics Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&display=swap">
+<style>
+:root{
+  --bg:#F5F8F7; --surface:#FFFFFF; --mist:#E6F0EE; --ink:#12272A; --muted:#455C5F; --line:#D3E0DE;
+  --primary:#0E5A5F; --primary-ink:#FFFFFF; --primary-hover:#0A474B;
+  --bar-pre:#93A9AB;
+  --caution-bg:#FFF4DA; --caution-line:#D9962B; --caution-ink:#5E4100;
+  --ok-bg:#E3F4EA; --ok-ink:#125B36; --ok-line:#59B287;
+  --em-bg:#FDEEEC; --em-btn:#B3261E; --em-btn-hover:#8F1D17; --em-text:#8F1D17; --em-line:#B3261E;
+  --focus:#0B63CE;
+  --sidebar:#0E2426; --sidebar-ink:#D9E7E6; --sidebar-muted:#7FA0A0; --sidebar-active:#16393C;
+  --font-body:"Atkinson Hyperlegible","Segoe UI",system-ui,-apple-system,Roboto,"Noto Sans",Arial,sans-serif;
+  --font-head:"Bricolage Grotesque","Atkinson Hyperlegible","Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0C1718; --surface:#132325; --mist:#183033; --ink:#E8F1F0; --muted:#A3B8B9; --line:#27403F;
+    --primary:#6BCBCD; --primary-ink:#06292B; --primary-hover:#8AD9DB;
+    --bar-pre:#5C7677;
+    --caution-bg:#3A2D0E; --caution-line:#C58A25; --caution-ink:#F6DDA1;
+    --ok-bg:#12321F; --ok-ink:#9BE0B8; --ok-line:#2F6B4B;
+    --em-bg:#2E1612; --em-btn:#D2382D; --em-btn-hover:#E5544A; --em-text:#FFB4AC; --em-line:#E5544A;
+    --focus:#8AB8FF;
+    --sidebar:#081415; --sidebar-ink:#D9E7E6; --sidebar-muted:#5C7B7B; --sidebar-active:#122E30;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C1718; --surface:#132325; --mist:#183033; --ink:#E8F1F0; --muted:#A3B8B9; --line:#27403F;
+  --primary:#6BCBCD; --primary-ink:#06292B; --primary-hover:#8AD9DB;
+  --bar-pre:#5C7677;
+  --caution-bg:#3A2D0E; --caution-line:#C58A25; --caution-ink:#F6DDA1;
+  --ok-bg:#12321F; --ok-ink:#9BE0B8; --ok-line:#2F6B4B;
+  --em-bg:#2E1612; --em-btn:#D2382D; --em-btn-hover:#E5544A; --em-text:#FFB4AC; --em-line:#E5544A;
+  --focus:#8AB8FF;
+  --sidebar:#081415; --sidebar-ink:#D9E7E6; --sidebar-muted:#5C7B7B; --sidebar-active:#122E30;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:1rem;line-height:1.55}
+img,svg{max-width:100%}
+a{color:inherit}
+h1,h2,h3{font-family:var(--font-head);font-weight:700;letter-spacing:-0.02em;line-height:1.15;margin:0}
+p{margin:0}
+ul{margin:0;padding:list-style:none}s
+table{border-collapse:collapse;width:100%}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:6px}
+.ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ic-sm{width:16px;height:16px}
+.ic-lg{width:26px;height:26px}
+.sprite{position:absolute;width:0;height:0;overflow:hidden}
+.skip{position:absolute;left:-999px;top:8px;background:var(--primary);color:var(--primary-ink);padding:10px 16px;border-radius:8px;z-index:200;font-weight:700}
+.skip:focus{left:8px}
+
+/* ===== App shell ===== */
+.app{display:grid;grid-template-columns:264px minmax(0,1fr);min-height:100vh}
+@media (max-width:980px){.app{grid-template-columns:1fr}}
+
+/* Sidebar */
+.side{background:var(--sidebar);color:var(--sidebar-ink);padding:20px 16px;display:flex;flex-direction:column;gap:22px;position:sticky;top:0;height:100vh;overflow-y:auto}
+@media (max-width:980px){.side{position:fixed;inset:0 auto 0 0;width:264px;z-index:80;transform:translateX(-100%);transition:transform .2s ease}
+  .side.open{transform:translateX(0)}
+  .scrim{position:fixed;inset:0;background:rgba(6,15,16,.5);z-index:70;display:none}
+  .scrim.show{display:block}
+}
+.side-brand{display:flex;align-items:center;gap:10px;padding:6px 8px;text-decoration:none;font:700 1.1875rem var(--font-head);color:#fff;letter-spacing:-0.02em}
+.side-brand .brand-mark{width:34px;height:34px;border-radius:9px;background:var(--primary);color:var(--primary-ink);display:grid;place-items:center;flex:none}
+.side-brand .brand-mark .ic{width:20px;height:20px}
+.side-tag{font-size:.75rem;color:var(--sidebar-muted);padding:0 8px;margin-top:-14px;font-weight:700;letter-spacing:.02em}
+.side-nav{display:flex;flex-direction:column;gap:2px}
+.side-nav a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:var(--sidebar-muted);font-weight:700;font-size:.9375rem;min-height:44px}
+.side-nav a:hover{background:var(--sidebar-active);color:#fff}
+.side-nav a[aria-current="page"]{background:var(--sidebar-active);color:#fff}
+.side-nav a[aria-current="page"] .ic{color:#6BCBCD}
+.side-section-label{font-size:.75rem;text-transform:none;color:var(--sidebar-muted);font-weight:700;padding:14px 12px 2px}
+.side-foot{margin-top:auto;padding:14px 12px;border-top:1px solid rgba(255,255,255,.08)}
+.side-user{display:flex;align-items:center;gap:10px}
+.side-avatar{width:36px;height:36px;border-radius:50%;background:#6BCBCD;color:#06292B;display:grid;place-items:center;font:700 .9rem var(--font-head);flex:none}
+.side-user-name{font-size:.875rem;font-weight:700;color:#fff}
+.side-user-role{font-size:.75rem;color:var(--sidebar-muted)}
+.side-close{display:none}
+@media (max-width:980px){.side-close{display:inline-flex;margin-left:auto;background:none;border:0;color:var(--sidebar-muted);min-height:36px}}
+
+/* Main column */
+.main-col{min-width:0}
+.topbar{position:sticky;top:0;z-index:60;background:var(--surface);border-bottom:1px solid var(--line);padding:0 clamp(16px,3vw,32px)}
+.topbar-row{display:flex;align-items:center;gap:16px;min-height:68px}
+.menu-btn{display:none;min-height:40px;min-width:40px;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:9px;cursor:pointer;align-items:center;justify-content:center}
+@media (max-width:980px){.menu-btn{display:inline-flex}}
+.page-title{font-size:1.1875rem;margin-right:auto}
+.page-title span{display:block;font:400 .8125rem var(--font-body);color:var(--muted);margin-top:1px}
+.cohort-chip{display:inline-flex;align-items:center;gap:6px;background:var(--mist);color:var(--primary);border-radius:999px;padding:6px 14px;font-weight:700;font-size:.8125rem}
+.search{display:none;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:0 12px;min-height:40px;color:var(--muted);width:220px}
+@media (min-width:720px){.search{display:flex}}
+.search input{border:0;background:transparent;color:var(--ink);font:400 .9375rem var(--font-body);outline:0;width:100%}
+.icon-btn{min-height:40px;min-width:40px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;position:relative;cursor:pointer}
+.icon-btn:hover{color:var(--ink);background:var(--mist)}
+.dot{position:absolute;top:6px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--em-btn);border:1.5px solid var(--surface)}
+.hide-xs{display:inline}
+@media (max-width:460px){.hide-xs{display:none}}
+
+.content{padding:clamp(20px,3vw,32px) clamp(16px,3vw,32px) 64px}
+.strip-note{background:var(--mist);color:var(--ink);border-radius:12px;padding:12px 16px;display:flex;gap:10px;align-items:flex-start;font-size:.875rem;margin-bottom:24px}
+.strip-note .ic{color:var(--primary);margin-top:1px}
+.strip-note strong{font-weight:700}
+
+section.block{margin-bottom:40px}
+.block-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.block-head h2{font-size:1.25rem}
+.block-head p{color:var(--muted);font-size:.875rem;margin-top:3px}
+.block-link{font-size:.8125rem;font-weight:700;color:var(--primary);text-decoration:none;white-space:nowrap}
+.block-link:hover{text-decoration:underline}
+
+/* KPI cards */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+@media (max-width:980px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:480px){.kpis{grid-template-columns:1fr}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;position:relative;overflow:hidden}
+.kpi-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.kpi-icon{width:38px;height:38px;border-radius:10px;background:var(--mist);color:var(--primary);display:grid;place-items:center;flex:none}
+.kpi-icon.warn{background:var(--em-bg);color:var(--em-text)}
+.kpi-delta{display:inline-flex;align-items:center;gap:4px;font-size:.75rem;font-weight:700;color:var(--ok-ink);background:var(--ok-bg);border-radius:999px;padding:3px 9px}
+.kpi-delta.neutral{color:var(--muted);background:var(--mist)}
+.kpi-value{font:700 2rem/1 var(--font-head);letter-spacing:-0.02em}
+.kpi-label{margin-top:6px;color:var(--muted);font-size:.875rem}
+
+/* Card shell */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px}
+.card-pad{padding:22px 24px}
+
+/* Two-col grid */
+.grid-2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:20px;align-items:start}
+@media (max-width:900px){.grid-2{grid-template-columns:1fr}}
+
+/* Pre/post comparison bars (reused pattern from site) */
+.compare-list{display:grid;gap:20px}
+.compare-row{display:grid;gap:8px}
+.compare-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.compare-top h3{font-size:.9375rem;font-weight:700}
+.gain{display:inline-flex;align-items:center;background:var(--ok-bg);color:var(--ok-ink);border-radius:999px;padding:2px 10px;font-weight:700;font-size:.75rem}
+.pair{display:grid;gap:8px}
+.line{display:grid;grid-template-columns:74px minmax(0,1fr) 56px;gap:10px;align-items:center}
+.lbl{color:var(--muted);font-size:.8125rem}
+.bar{height:12px;border-radius:7px;background:var(--mist);overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:7px;transition:width 1s cubic-bezier(.2,.7,.2,1)}
+.bar i.pre{background:var(--bar-pre)}
+.bar i.post{background:var(--primary)}
+.in .bar i{width:var(--w)}
+.val{text-align:right;font-variant-numeric:tabular-nums;font-size:.875rem;font-weight:700}
+
+/* Donut */
+.donut-wrap{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px}
+.donut{width:168px;height:168px;border-radius:50%;position:relative;background:conic-gradient(var(--primary) 0deg, var(--primary) calc(var(--pct)*3.6deg), var(--mist) calc(var(--pct)*3.6deg));display:grid;place-items:center;transition:background 1s ease}
+.donut::before{content:"";position:absolute;inset:16px;border-radius:50%;background:var(--surface)}
+.donut-inner{position:relative;z-index:1}
+.donut-inner b{display:block;font:700 1.75rem var(--font-head)}
+.donut-inner span{font-size:.75rem;color:var(--muted)}
+.donut-legend{display:flex;gap:16px;font-size:.8125rem;color:var(--muted)}
+.donut-legend span{display:inline-flex;align-items:center;gap:6px}
+.dot-lg{width:9px;height:9px;border-radius:50%;background:var(--primary)}
+.dot-lg.alt{background:var(--mist);border:1px solid var(--line)}
+
+/* Module engagement bars */
+.mod-list{display:grid;gap:14px}
+.mod-row{display:grid;grid-template-columns:34px minmax(0,1fr) 96px;gap:12px;align-items:center}
+.mod-icon{width:34px;height:34px;border-radius:9px;background:var(--mist);color:var(--primary);display:grid;place-items:center;flex:none}
+.mod-name{font-size:.875rem;font-weight:700}
+.mod-bar{height:9px;border-radius:6px;background:var(--mist);overflow:hidden;margin-top:6px}
+.mod-bar i{display:block;height:100%;width:0;background:var(--primary);border-radius:6px;transition:width 1s cubic-bezier(.2,.7,.2,1)}
+.in .mod-bar i{width:var(--w)}
+.mod-count{text-align:right;font-size:.8125rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.mod-count b{color:var(--ink);font-size:.9375rem}
+
+/* Guardrail table */
+.table-scroll{overflow-x:auto}
+.tbl{font-size:.875rem;min-width:640px}
+.tbl th{text-align:left;color:var(--muted);font-weight:700;font-size:.75rem;text-transform:none;padding:0 14px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.pid{font-variant-numeric:tabular-nums;color:var(--muted)}
+.status-pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-weight:700;font-size:.75rem;white-space:nowrap}
+.status-pill.routed{background:var(--em-bg);color:var(--em-text)}
+.status-pill.resolved{background:var(--ok-bg);color:var(--ok-ink)}
+.kw{background:var(--mist);border-radius:6px;padding:2px 7px;font-size:.8125rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+/* Feedback panel */
+.fb-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:760px){.fb-grid{grid-template-columns:1fr}}
+.fb-card{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:18px}
+.fb-card .ic{color:var(--primary);margin-bottom:10px}
+.fb-card p{font-size:.9375rem;color:var(--ink)}
+.fb-card .src{display:block;margin-top:10px;font-size:.75rem;color:var(--muted)}
+
+/* Session log */
+.log{display:grid;gap:0}
+.log-row{display:grid;grid-template-columns:64px minmax(0,1fr);gap:14px;padding:14px 0;border-top:1px solid var(--line)}
+.log-row:first-child{border-top:0}
+.log-time{color:var(--muted);font-size:.8125rem;font-variant-numeric:tabular-nums;padding-top:1px}
+.log-body h4{font-size:.875rem;font-weight:700;margin-bottom:2px}
+.log-body p{color:var(--muted);font-size:.8125rem}
+
+.foot-note{margin-top:8px;color:var(--muted);font-size:.8125rem;max-width:70ch}
+.js .compare-list .bar i,.js .mod-bar i{width:0}
+</style>
+</head>
+<body>
+
+<svg class="sprite" aria-hidden="true">
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.7-10-9.3C.4 8 2.3 4 6.3 4c2 0 3.6 1 5.7 3.3C14.1 5 15.7 4 17.7 4c4 0 5.9 4 4.3 7.7C19.5 16.3 12 21 12 21z"/></symbol>
+  <symbol id="i-face" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01M8 15c1.5 1.3 6.5 1.3 8 0"/></symbol>
+  <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 15a8 8 0 1 1 16 0"/><path d="M12 15l4-5"/></symbol>
+  <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 3s6 7 6 11.5a6 6 0 0 1-12 0C6 10 12 3 12 3z"/></symbol>
+  <symbol id="i-bubbles" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><circle cx="16" cy="9" r="3"/></symbol>
+  <symbol id="i-clipboard" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9z"/><path d="M9 14l2 2 4-4"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></symbol>
+  <symbol id="i-device" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17h.01"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.3c2.5.5 4.5 2.6 4.5 5.7"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M11 20V4M18 20v-7"/></symbol>
+  <symbol id="i-message" viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 10a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6z"/><path d="M10 20a2 2 0 0 0 4 0"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3H9.8l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9c.6.5 1.3.9 2 1.2l.4 2.6h4.4l.4-2.6c.7-.3 1.4-.7 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></symbol>
+</svg>
+
+<a class="skip" href="#main">Skip to main content</a>
+<div class="scrim" id="scrim"></div>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="side" id="side" aria-label="Admin navigation">
+    <div style="display:flex;align-items:center">
+      <a class="side-brand" href="#top">
+        <span class="brand-mark" aria-hidden="true"><svg class="ic"><use href="#i-heart"/></svg></span>
+        HealthAI
+      </a>
+      <button class="icon-btn side-close" id="sideClose" type="button" aria-label="Close menu"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <p class="side-tag">Admin · Workshop analytics</p>
+
+    <nav class="side-nav" aria-label="Sections">
+      <a href="#top" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-grid"/></svg>Overview</a>
+      <a href="#learning"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg>Learning outcomes</a>
+      <a href="#modules"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg>Module engagement</a>
+      <a href="#guardrails"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>Safety guardrails</a>
+      <a href="#feedback"><svg class="ic" aria-hidden="true"><use href="#i-message"/></svg>Participant feedback</a>
+      <p class="side-section-label">System</p>
+      <a href="#sources"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg>Data sources</a>
+      <a href="tel:108"><svg class="ic" aria-hidden="true"><use href="#i-settings"/></svg>Settings</a>
+    </nav>
+
+    <div class="side-foot">
+      <div class="side-user">
+        <span class="side-avatar" aria-hidden="true">NK</span>
+        <div>
+          <span class="side-user-name" style="display:block">Dr. N. M. Kandoi</span>
+          <span class="side-user-role">Faculty guide · Admin access</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-col">
+    <header class="topbar">
+      <div class="topbar-row">
+        <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="side" aria-label="Open menu">
+          <svg class="ic"><use href="#i-menu"/></svg>
+        </button>
+        <div class="page-title">
+          Workshop analytics
+          <span>Community Engagement Project · updated 11 Sep 2026</span>
+        </div>
+        <span class="cohort-chip"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-users"/></svg>Cohort N = 60</span>
+        <label class="search">
+          <svg class="ic ic-sm" aria-hidden="true"><use href="#i-search"/></svg>
+          <input type="search" placeholder="Search participant ID…" aria-label="Search participant ID">
+        </label>
+        <button class="icon-btn" type="button" aria-label="Notifications, 3 unread">
+          <svg class="ic"><use href="#i-bell"/></svg>
+          <span class="dot" aria-hidden="true"></span>
+        </button>
+      </div>
+    </header>
+
+    <main id="main" class="content">
+
+      <div class="strip-note">
+        <svg class="ic ic-sm" aria-hidden="true"><use href="#i-info"/></svg>
+        <p><strong>Internal dashboard.</strong> Figures summarize the pre/post workshop evaluation (test cohort, N = 60) and use anonymous participant IDs only — no names or phone numbers. <span class="hide-xs">Not shown to workshop participants.</span></p>
+      </div>
+
+      <!-- KPI ROW -->
+      <section class="block" id="top" aria-labelledby="kpiTitle">
+        <h2 id="kpiTitle" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden">Key metrics</h2>
+        <div class="kpis">
+          <div class="kpi">
+            <div class="kpi-top">
+              <span class="kpi-icon"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span>
+              <span class="kpi-delta neutral">4 workshops</span>
+            </div>
+            <p class="kpi-value">60</p>
+            <p class="kpi-label">Participants evaluated</p>
+          </div>
+          <div class="kpi">
+            <div class="kpi-top">
+              <span class="kpi-icon"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></span>
+              <span class="kpi-delta">+107%</span>
+            </div>
+            <p class="kpi-value">8.7<span style="font-size:1rem;color:var(--muted);font-family:var(--font-body);font-weight:400">/10</span></p>
+            <p class="kpi-label">Average post-session quiz score</p>
+          </div>
+          <div class="kpi">
+            <div class="kpi-top">
+              <span class="kpi-icon"><svg class="ic" aria-hidden="true"><use href="#i-face"/></svg></span>
+              <span class="kpi-delta">+63.4pt</span>
+            </div>
+            <p class="kpi-value">91.7%</p>
+            <p class="kpi-label">Recognize F.A.S.T. stroke symptoms</p>
+          </div>
+          <div class="kpi">
+            <div class="kpi-top">
+              <span class="kpi-icon warn"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg></span>
+              <span class="kpi-delta neutral">this cohort</span>
+            </div>
+            <p class="kpi-value">11</p>
+            <p class="kpi-label">Guardrail interventions routed to 108/112 guidance</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- LEARNING OUTCOMES -->
+      <section class="block" id="learning" aria-labelledby="learnTitle">
+        <div class="block-head">
+          <div>
+            <h2 id="learnTitle">Pre- vs. post-session knowledge</h2>
+            <p>Self-assessed and quiz-measured competency across the four tracked indicators.</p>
+          </div>
+          <a class="block-link" href="#sources">Methodology ↗ hidden for print</a>
+        </div>
+
+        <div class="grid-2">
+          <div class="card card-pad">
+            <div class="compare-list" id="compareList">
+              <div class="compare-row">
+                <div class="compare-top">
+                  <h3>Recognition of stroke F.A.S.T. symptoms</h3>
+                  <span class="gain">+63.4 pts</span>
+                </div>
+                <div class="pair">
+                  <div class="line"><span class="lbl">Pre</span><span class="bar"><i class="pre" style="--w:28.3%"></i></span><span class="val">28.3%</span></div>
+                  <div class="line"><span class="lbl">Post</span><span class="bar"><i class="post" style="--w:91.7%"></i></span><span class="val">91.7%</span></div>
+                </div>
+              </div>
+              <div class="compare-row">
+                <div class="compare-top">
+                  <h3>Understanding AI's operational boundaries &amp; safety</h3>
+                  <span class="gain">+51.6 pts</span>
+                </div>
+                <div class="pair">
+                  <div class="line"><span class="lbl">Pre</span><span class="bar"><i class="pre" style="--w:45.0%"></i></span><span class="val">45.0%</span></div>
+                  <div class="line"><span class="lbl">Post</span><span class="bar"><i class="post" style="--w:96.6%"></i></span><span class="val">96.6%</span></div>
+                </div>
+              </div>
+              <div class="compare-row">
+                <div class="compare-top">
+                  <h3>Awareness of baseline preventive screenings</h3>
+                  <span class="gain">+43.3 pts</span>
+                </div>
+                <div class="pair">
+                  <div class="line"><span class="lbl">Pre</span><span class="bar"><i class="pre" style="--w:38.3%"></i></span><span class="val">38.3%</span></div>
+                  <div class="line"><span class="lbl">Post</span><span class="bar"><i class="post" style="--w:81.6%"></i></span><span class="val">81.6%</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card card-pad" id="donutCard">
+            <div class="donut-wrap">
+              <div class="donut" id="quizDonut" style="--pct:0">
+                <div class="donut-inner">
+                  <b id="donutVal">0/10</b>
+                  <span>Avg. quiz score</span>
+                </div>
+              </div>
+              <div class="donut-legend">
+                <span><i class="dot-lg" aria-hidden="true"></i>Post-session (8.7)</span>
+                <span><i class="dot-lg alt" aria-hidden="true"></i>Remaining</span>
+              </div>
+              <p class="foot-note" style="text-align:center">Pre-session average was 4.2/10 — more than double by the close of the workshop.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MODULE ENGAGEMENT -->
+      <section class="block" id="modules" aria-labelledby="modTitle">
+        <div class="block-head">
+          <div>
+            <h2 id="modTitle">Module engagement</h2>
+            <p>Share of participants who opened each learning module during workshops.</p>
+          </div>
+        </div>
+        <div class="card card-pad">
+          <div class="mod-list" id="modList">
+            <div class="mod-row">
+              <span class="mod-icon"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-face"/></svg></span>
+              <div><p class="mod-name">Stroke awareness (F.A.S.T.)</p><div class="mod-bar"><i style="--w:97%"></i></div></div>
+              <span class="mod-count"><b>58</b> / 60</span>
+            </div>
+            <div class="mod-row">
+              <span class="mod-icon"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-heart"/></svg></span>
+              <div><p class="mod-name">Heart wellness</p><div class="mod-bar"><i style="--w:88%"></i></div></div>
+              <span class="mod-count"><b>53</b> / 60</span>
+            </div>
+            <div class="mod-row">
+              <span class="mod-icon"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-gauge"/></svg></span>
+              <div><p class="mod-name">Diabetes awareness</p><div class="mod-bar"><i style="--w:82%"></i></div></div>
+              <span class="mod-count"><b>49</b> / 60</span>
+            </div>
+            <div class="mod-row">
+              <span class="mod-icon"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-sparkle"/></svg></span>
+              <div><p class="mod-name">AI in healthcare</p><div class="mod-bar"><i style="--w:78%"></i></div></div>
+              <span class="mod-count"><b>47</b> / 60</span>
+            </div>
+            <div class="mod-row">
+              <span class="mod-icon"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-clipboard"/></svg></span>
+              <div><p class="mod-name">Preventive checkups</p><div class="mod-bar"><i style="--w:70%"></i></div></div>
+              <span class="mod-count"><b>42</b> / 60</span>
+            </div>
+            <div class="mod-row">
+              <span class="mod-icon"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-drop"/></svg></span>
+              <div><p class="mod-name">Hydration</p><div class="mod-bar"><i style="--w:65%"></i></div></div>
+              <span class="mod-count"><b>39</b> / 60</span>
+            </div>
+            <div class="mod-row">
+              <span class="mod-icon"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-device"/></svg></span>
+              <div><p class="mod-name">Digital &amp; AI literacy</p><div class="mod-bar"><i style="--w:58%"></i></div></div>
+              <span class="mod-count"><b>35</b> / 60</span>
+            </div>
+            <div class="mod-row">
+              <span class="mod-icon"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-bubbles"/></svg></span>
+              <div><p class="mod-name">Hygiene</p><div class="mod-bar"><i style="--w:52%"></i></div></div>
+              <span class="mod-count"><b>31</b> / 60</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SAFETY GUARDRAILS -->
+      <section class="block" id="guardrails" aria-labelledby="guardTitle">
+        <div class="block-head">
+          <div>
+            <h2 id="guardTitle">Safety guardrail log</h2>
+            <p>Rule-based intent logic intercepts red-flag keywords and routes the participant to emergency guidance instead of a triage reply.</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="table-scroll">
+            <table class="tbl">
+              <thead>
+                <tr><th>Participant</th><th>Module / context</th><th>Trigger keyword</th><th>Action taken</th><th>Status</th></tr>
+              </thead>
+              <tbody>
+                <tr><td class="pid">P-0142</td><td>Assistant · Heart wellness</td><td><span class="kw">chest pain</span></td><td>Displayed emergency panel, call 108/112</td><td><span class="status-pill routed"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-alert"/></svg>Routed</span></td></tr>
+                <tr><td class="pid">P-0097</td><td>Assistant · Stroke awareness</td><td><span class="kw">face drooping</span></td><td>Displayed emergency panel, call 108/112</td><td><span class="status-pill routed"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-alert"/></svg>Routed</span></td></tr>
+                <tr><td class="pid">P-0058</td><td>Assistant · Diabetes awareness</td><td><span class="kw">stop tablets</span></td><td>Caution callout, deferred to pharmacist</td><td><span class="status-pill resolved"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg>Resolved</span></td></tr>
+                <tr><td class="pid">P-0113</td><td>Assistant · Heart wellness</td><td><span class="kw">left arm numb</span></td><td>Displayed emergency panel, call 108/112</td><td><span class="status-pill routed"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-alert"/></svg>Routed</span></td></tr>
+                <tr><td class="pid">P-0026</td><td>Assistant · Stroke awareness</td><td><span class="kw">slurred speech</span></td><td>Displayed emergency panel, call 108/112</td><td><span class="status-pill routed"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-alert"/></svg>Routed</span></td></tr>
+                <tr><td class="pid">P-0071</td><td>Assistant · Diabetes awareness</td><td><span class="kw">insulin dose</span></td><td>Caution callout, deferred to doctor</td><td><span class="status-pill resolved"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg>Resolved</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <p class="foot-note">11 total interventions this cohort — 4 caution-level (medicine questions, deferred to a pharmacist or doctor) and 7 emergency-level (routed straight to 108/112 guidance). The assistant never diagnoses, doses, or advises stopping a medicine.</p>
+      </section>
+
+      <!-- FEEDBACK -->
+      <section class="block" id="feedback" aria-labelledby="fbTitle">
+        <div class="block-head">
+          <div>
+            <h2 id="fbTitle">Participant feedback</h2>
+            <p>Themes from the post-workshop usability survey, summarized from open-text responses.</p>
+          </div>
+        </div>
+        <div class="fb-grid">
+          <div class="fb-card">
+            <svg class="ic" aria-hidden="true"><use href="#i-sparkle"/></svg>
+            <p>Participants reported feeling noticeably less wary of AI once they understood its supportive, non-diagnostic role in areas like radiology.</p>
+            <span class="src">Theme from open-text survey responses</span>
+          </div>
+          <div class="fb-card">
+            <svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>
+            <p>Several responses credited the workshop with reducing their instinct to self-diagnose online, in favor of consulting a qualified professional.</p>
+            <span class="src">Theme from open-text survey responses</span>
+          </div>
+          <div class="fb-card">
+            <svg class="ic" aria-hidden="true"><use href="#i-face"/></svg>
+            <p>The F.A.S.T. stroke check and the live quiz were the two most-mentioned highlights, especially among older participants.</p>
+            <span class="src">Theme from open-text survey responses</span>
+          </div>
+          <div class="fb-card">
+            <svg class="ic" aria-hidden="true"><use href="#i-message"/></svg>
+            <p>Interactive formats sparked peer discussion on blood sugar checks, hydration and hygiene that continued after sessions ended.</p>
+            <span class="src">Theme from open-text survey responses</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SOURCES / recent sessions -->
+      <section class="block" id="sources" aria-labelledby="srcTitle">
+        <div class="block-head">
+          <div>
+            <h2 id="srcTitle">Recent workshop sessions</h2>
+            <p>Latest deployments logged by facilitators.</p>
+          </div>
+        </div>
+        <div class="card card-pad">
+          <div class="log">
+            <div class="log-row"><span class="log-time">11 Sep</span><div class="log-body"><h4>Community Hall, session 4 — 16 participants</h4><p>Full module walkthrough plus pre/post quiz. Data folded into cohort totals above.</p></div></div>
+            <div class="log-row"><span class="log-time">04 Sep</span><div class="log-body"><h4>Community Hall, session 3 — 15 participants</h4><p>Two guardrail interventions logged during the assistant demo (chest pain, insulin dose).</p></div></div>
+            <div class="log-row"><span class="log-time">28 Aug</span><div class="log-body"><h4>Senior center, session 2 — 14 participants</h4><p>Highest F.A.S.T. quiz completion rate of any session so far.</p></div></div>
+            <div class="log-row"><span class="log-time">21 Aug</span><div class="log-body"><h4>College outreach, session 1 — 15 participants</h4><p>First deployment. Feedback shaped the caution-callout wording used from session 2 onward.</p></div></div>
+          </div>
+        </div>
+        <p class="foot-note">Sources: WHO Global Strategy on Digital Health; ICMR guidelines for Type 2 diabetes and cardiovascular risk; American Stroke Association F.A.S.T. protocol. Figures reflect the N = 60 evaluation cohort from the Community Engagement Project report, dated 11/09/2026.</p>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import { 
+    getAuth, 
+    signInWithPopup, 
+    GoogleAuthProvider, 
+    onAuthStateChanged, 
+    signOut 
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+  import { 
+    getFirestore, 
+    collection, 
+    collectionGroup, 
+    getDocs 
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA4gP7M4ZUXqEI-1QxM3A4TWI8NFdtlqug",
+    authDomain: "healthai-feb6a.firebaseapp.com",
+    projectId: "healthai-feb6a",
+    storageBucket: "healthai-feb6a.appspot.com",
+    messagingSenderId: "157838039937",
+    appId: "1:157838039937:web:2fd06a211dc76e45f52680"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
+
+  // 5 Authorized Admins
+  const authorizedAdmins = {
+    "admin1@gmail.com": { 
+      name: "Dr. N. M. Kandoi", 
+      role: "Faculty guide · Admin access", 
+      initials: "NK" 
+    },
+    "niharikadeshpande2006@gmail.com": { 
+      name: "Niharika Deshpande", 
+      role: "Workshop Lead · Admin access", 
+      initials: "ND" 
+    },
+    "gayatrichate378@gmail.com": { 
+      name: "Gayatri Chate", 
+      role: "Co-Facilitator · Admin access", 
+      initials: "GC" 
+    },
+    "shifa01@gmail.com": { 
+      name: "Shifa Ali", 
+      role: "Researcher · Admin access", 
+      initials: "SA" 
+    },
+    "admin5@gmail.com": { 
+      name: "Chandrashekhar Bhande", 
+      role: "Researcher · Admin access", 
+      initials: "CB" 
+    }
+  };
+
+  // Preserve native sidebar controls
+  document.documentElement.classList.add('js');
+  var menuBtn = document.getElementById('menuBtn');
+  var side = document.getElementById('side');
+  var scrim = document.getElementById('scrim');
+  var sideClose = document.getElementById('sideClose');
+
+  function openSide(){ side.classList.add('open'); scrim.classList.add('show'); menuBtn?.setAttribute('aria-expanded','true'); }
+  function closeSide(){ side.classList.remove('open'); scrim.classList.remove('show'); menuBtn?.setAttribute('aria-expanded','false'); }
+  if(menuBtn) menuBtn.addEventListener('click', openSide);
+  if(sideClose) sideClose.addEventListener('click', closeSide);
+  if(scrim) scrim.addEventListener('click', closeSide);
+  side?.querySelectorAll('a').forEach(function(a){ a.addEventListener('click', closeSide); });
+
+  const topicMap = {
+    'heart_wellness': 'Heart wellness',
+    'stroke_fast': 'Stroke awareness (F.A.S.T.)',
+    'diabetes_awareness': 'Diabetes awareness',
+    'ai_in_healthcare': 'AI in healthcare',
+    'preventive_checkups': 'Preventive checkups',
+    'hydration': 'Hydration',
+    'digital_literacy': 'Digital & AI literacy',
+    'hygiene': 'Hygiene'
+  };
+
+  function updateDonut(score) {
+    var donut = document.getElementById('quizDonut');
+    var donutVal = document.getElementById('donutVal');
+    if (donut && donutVal) {
+      donut.style.setProperty('--pct', (score / 10) * 100);
+      donutVal.textContent = score + '/10';
+    }
+  }
+
+  function triggerBarAnimations() {
+    document.querySelectorAll('.compare-list .line').forEach(function(line) {
+      var barI = line.querySelector('.bar i');
+      var valEl = line.querySelector('.val');
+      if (barI && valEl) {
+        barI.style.width = valEl.textContent.trim();
+      }
+    });
+
+    document.querySelectorAll('#compareList, #modList, .compare-row, .mod-row').forEach(function(el) {
+      if (el) el.classList.add('in');
+    });
+  }
+
+  function setAdminProfile(admin) {
+    const avatar = document.querySelector('.side-avatar');
+    const nameEl = document.querySelector('.side-user-name');
+    const roleEl = document.querySelector('.side-user-role');
+    if (avatar) avatar.textContent = admin.initials || "AD";
+    if (nameEl) nameEl.textContent = admin.name || "Administrator";
+    if (roleEl) roleEl.textContent = admin.role || "Admin access";
+
+    // Enable logout directly on clicking the existing profile card
+    const userBox = document.querySelector('.side-user');
+    if (userBox) {
+      userBox.style.cursor = 'pointer';
+      userBox.title = 'Click to log out';
+      userBox.onclick = async () => {
+        if (confirm("Log out of HealthAI Admin?")) {
+          await signOut(auth);
+        }
+      };
+    }
+  }
+
+  async function syncDashboard() {
+    try {
+      const usersSnap = await getDocs(collection(db, "users"));
+      const totalCount = usersSnap.size;
+
+      if (totalCount > 0) {
+        const kpis = document.querySelectorAll(".kpi-value");
+        if (kpis.length > 0) kpis[0].textContent = totalCount;
+        const chip = document.querySelector(".cohort-chip");
+        if (chip) chip.innerHTML = `<svg class="ic ic-sm" aria-hidden="true"><use href="#i-users"/></svg>Cohort N = ${totalCount}`;
+      }
+
+      const assessSnap = await getDocs(collectionGroup(db, "assessments"));
+      let postSum = 0, postCount = 0, preSum = 0, preCount = 0;
+
+      assessSnap.forEach(function(dSnap) {
+        const d = dSnap.data();
+        const score = typeof d.score === 'number' ? d.score : 0;
+        const total = typeof d.totalQuestions === 'number' ? d.totalQuestions : 5;
+        const normalized = (score / total) * 10;
+
+        if (d.assessmentType === 'post_assessment' || dSnap.id === 'post_assessment') {
+          postSum += normalized;
+          postCount++;
+        } else if (d.assessmentType === 'pre_assessment' || dSnap.id === 'pre_assessment') {
+          preSum += normalized;
+          preCount++;
+        }
+      });
+
+      if (postCount > 0) {
+        const avgScore = (postSum / postCount).toFixed(1);
+        const kpis = document.querySelectorAll(".kpi-value");
+        if (kpis.length > 1) {
+          kpis[1].innerHTML = `${avgScore}<span style="font-size:1rem;color:var(--muted);font-family:var(--font-body);font-weight:400">/10</span>`;
+        }
+        updateDonut(avgScore);
+      } else if (preCount > 0) {
+        updateDonut((preSum / preCount).toFixed(1));
+      } else {
+        updateDonut(8.7);
+      }
+
+      const progSnap = await getDocs(collectionGroup(db, "progress"));
+      const moduleCompletions = {};
+
+      progSnap.forEach(function(dSnap) {
+        const d = dSnap.data();
+        if (d.completed === true) {
+          const tId = d.topicId || dSnap.id;
+          moduleCompletions[tId] = (moduleCompletions[tId] || 0) + 1;
+        }
+      });
+
+      const cohortSize = totalCount > 0 ? totalCount : 3;
+      document.querySelectorAll(".mod-row").forEach(function(row) {
+        const title = row.querySelector(".mod-name");
+        if (!title) return;
+        const name = title.textContent.trim();
+        const key = Object.keys(topicMap).find(function(k) { return topicMap[k] === name; }) || name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+
+        const completed = moduleCompletions[key] || 0;
+        const pct = Math.min(100, Math.round((completed / cohortSize) * 100));
+
+        const countBox = row.querySelector(".mod-count");
+        if (countBox) countBox.innerHTML = `<b>${completed}</b> / ${cohortSize}`;
+
+        const barFill = row.querySelector(".mod-bar i");
+        if (barFill) barFill.style.width = pct + '%';
+      });
+
+    } catch (e) {
+      console.warn("Sync error:", e);
+    }
+
+    triggerBarAnimations();
+  }
+
+  // --- Auth UI Management ---
+  function showAuthGate() {
+    let gate = document.getElementById('authGateOverlay');
+    if (!gate) {
+      gate = document.createElement('div');
+      gate.id = 'authGateOverlay';
+      gate.style.cssText = `
+        position: fixed; inset: 0; z-index: 9999;
+        background: rgba(12, 23, 24, 0.96); backdrop-filter: blur(8px);
+        display: flex; align-items: center; justify-content: center;
+        padding: 20px; font-family: var(--font-body);
+      `;
+      gate.innerHTML = `
+        <div style="background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 32px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+          <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--mist); color: var(--primary); display: grid; place-items: center; margin: 0 auto 16px;">
+            <svg class="ic ic-lg" aria-hidden="true"><use href="#i-shield"/></svg>
+          </div>
+          <h2 style="font-family: var(--font-head); font-size: 1.3rem; margin-bottom: 8px; color: var(--ink);">Admin Portal Access</h2>
+          <p style="font-size: 0.875rem; color: var(--muted); margin-bottom: 24px;">Please authenticate with your designated Google account to view analytics.</p>
+          <button id="googleSignInBtn" type="button" style="width: 100%; min-height: 46px; border-radius: 10px; background: var(--primary); color: var(--primary-ink); font-weight: 700; font-size: 0.95rem; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <svg style="width:18px;height:18px;" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.17v2.98h5.27c-.23 1.25-.94 2.31-2 3.01v2.5h3.24c1.89-1.74 2.98-4.3 2.98-7.37 0-.72-.06-1.42-.32-1.12z"/><path fill="currentColor" d="M12.18 21c2.7 0 4.96-.9 6.62-2.42l-3.24-2.5c-.9.6-2.05.96-3.38.96-2.6 0-4.81-1.76-5.6-4.12H3.21v2.58C4.87 18.77 8.27 21 12.18 21z"/><path fill="currentColor" d="M6.58 12.92c-.2-.6-.31-1.25-.31-1.92s.11-1.32.31-1.92V6.5H3.21C2.55 7.82 2.18 9.37 2.18 11s.37 3.18 1.03 4.5l3.37-2.58z"/><path fill="currentColor" d="M12.18 5.96c1.47 0 2.79.51 3.83 1.5l2.87-2.87C17.14 2.98 14.88 2 12.18 2 8.27 2 4.87 4.23 3.21 7.5l3.37 2.58c.79-2.36 3-4.12 5.6-4.12z"/></svg>
+            Sign in with Google
+          </button>
+          <p id="authErrorMsg" style="color: var(--em-text); font-size: 0.8125rem; margin-top: 14px; display: none;"></p>
+        </div>
+      `;
+      document.body.appendChild(gate);
+
+      document.getElementById('googleSignInBtn').addEventListener('click', () => {
+        const errEl = document.getElementById('authErrorMsg');
+        errEl.style.display = 'none';
+        signInWithPopup(auth, provider).catch((err) => {
+          console.warn("Sign-in error:", err);
+          if (err.code !== 'auth/popup-closed-by-user') {
+            errEl.textContent = err.message || "Failed to sign in.";
+            errEl.style.display = 'block';
+          }
+        });
+      });
+    }
+    gate.style.display = 'flex';
+  }
+
+  function hideAuthGate() {
+    const gate = document.getElementById('authGateOverlay');
+    if (gate) gate.style.display = 'none';
+  }
+
+  // Monitor Auth state
+  onAuthStateChanged(auth, (user) => {
+    if (user && user.email) {
+      const email = user.email.toLowerCase();
+      if (authorizedAdmins[email]) {
+        hideAuthGate();
+        setAdminProfile(authorizedAdmins[email]);
+        syncDashboard();
+      } else {
+        showAuthGate();
+        const errEl = document.getElementById('authErrorMsg');
+        if (errEl) {
+          errEl.textContent = `Access Denied: ${email} is not an authorized administrator.`;
+          errEl.style.display = 'block';
+        }
+        signOut(auth);
+      }
+    } else {
+      showAuthGate();
+    }
+  });
+</script>
+</body>
+</html>
