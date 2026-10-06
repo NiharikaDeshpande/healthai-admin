@@ -262,6 +262,7 @@ section.block{margin-bottom:40px}
       <a href="#modules"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg>Module engagement</a>
       <a href="#guardrails"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>Safety guardrails</a>
       <a href="#feedback"><svg class="ic" aria-hidden="true"><use href="#i-message"/></svg>Participant feedback</a>
+      <a href="#notifications"><svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg>Push Notifications</a>
       <p class="side-section-label">System</p>
       <a href="#sources"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg>Data sources</a>
       <a href="tel:108"><svg class="ic" aria-hidden="true"><use href="#i-settings"/></svg>Settings</a>
@@ -521,6 +522,111 @@ section.block{margin-bottom:40px}
             <svg class="ic" aria-hidden="true"><use href="#i-message"/></svg>
             <p>Interactive formats sparked peer discussion on blood sugar checks, hydration and hygiene that continued after sessions ended.</p>
             <span class="src">Theme from open-text survey responses</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- NOTIFICATIONS -->
+      <section class="block" id="notifications" aria-labelledby="notifTitle">
+        <div class="block-head">
+          <div>
+            <h2 id="notifTitle">Push Notifications</h2>
+            <p>Send and manage targeted Firebase Cloud Messaging alerts.</p>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card card-pad">
+            <h3 style="font-size:.9375rem;font-weight:700;margin-bottom:16px;">Create New Notification</h3>
+            <form id="notificationForm" style="display:flex;flex-direction:column;gap:12px;">
+              <div>
+                <label style="display:block;font-size:.8125rem;font-weight:700;color:var(--muted);margin-bottom:4px;">Title *</label>
+                <input type="text" id="notifTitleInput" required style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:.875rem;" placeholder="e.g. Heatwave Alert">
+              </div>
+              <div>
+                <label style="display:block;font-size:.8125rem;font-weight:700;color:var(--muted);margin-bottom:4px;">Message *</label>
+                <textarea id="notifMessageInput" required rows="3" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:.875rem;" placeholder="High temperatures expected..."></textarea>
+              </div>
+              <div style="display:flex;gap:12px;">
+                <div style="flex:1;">
+                  <label style="display:block;font-size:.8125rem;font-weight:700;color:var(--muted);margin-bottom:4px;">Category *</label>
+                  <select id="notifCategoryInput" required style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:.875rem;">
+                    <option value="HEALTH_EDUCATION">Health Education</option>
+                    <option value="EMERGENCY">Emergency</option>
+                    <option value="WEATHER">Weather</option>
+                    <option value="HOSPITAL">Hospital</option>
+                    <option value="TRANSPORT">Transport</option>
+                  </select>
+                </div>
+                <div style="flex:1;">
+                  <label style="display:block;font-size:.8125rem;font-weight:700;color:var(--muted);margin-bottom:4px;">Priority *</label>
+                  <select id="notifPriorityInput" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:.875rem;">
+                    <option value="NORMAL">Normal</option>
+                    <option value="HIGH">High (Urgent)</option>
+                  </select>
+                </div>
+              </div>
+              <div style="display:flex;gap:12px;">
+                <div style="flex:1;">
+                  <label style="display:block;font-size:.8125rem;font-weight:700;color:var(--muted);margin-bottom:4px;">Target Audience *</label>
+                  <select id="notifTargetInput" required style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:.875rem;">
+                    <option value="ALL_USERS">All Users</option>
+                    <option value="VILLAGE">Specific Village</option>
+                  </select>
+                </div>
+                <div id="villageInputContainer" style="flex:1; display:none;">
+                  <label style="display:block;font-size:.8125rem;font-weight:700;color:var(--muted);margin-bottom:4px;">Target Village Name</label>
+                  <input type="text" id="notifVillageInput" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:.875rem;" placeholder="e.g. jalamb">
+                </div>
+              </div>
+              <div style="display:flex;gap:12px;">
+                <div style="flex:1;">
+                  <label style="display:block;font-size:.8125rem;font-weight:700;color:var(--muted);margin-bottom:4px;">Tap Action (App Screen)</label>
+                  <select id="notifActionInput" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:.875rem;">
+                    <option value="NONE">App Home</option>
+                    <option value="HEALTH_GUIDE">Health Topic Guide</option>
+                    <option value="EMERGENCY">Emergency SOS</option>
+                    <option value="HOSPITAL">Hospital/Medical Resources</option>
+                    <option value="TRANSPORT">Transport/Emergency Guide</option>
+                  </select>
+                </div>
+                <div style="flex:1;" id="actionDataContainer">
+                  <label style="display:block;font-size:.8125rem;font-weight:700;color:var(--muted);margin-bottom:4px;">Topic ID (if Guide)</label>
+                  <select id="notifActionDataInput" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:.875rem;">
+                    <option value="">- None -</option>
+                    <option value="heart_wellness">Heart Wellness</option>
+                    <option value="stroke_awareness">Stroke Awareness</option>
+                    <option value="diabetes_awareness">Diabetes Awareness</option>
+                    <option value="hydration">Hydration</option>
+                    <option value="hygiene">Hygiene</option>
+                    <option value="preventive_checkups">Preventive Checkups</option>
+                  </select>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:8px;">
+                <button type="button" id="btnSaveDraft" style="padding:10px 16px;border-radius:8px;background:var(--mist);color:var(--primary);border:none;font-weight:700;font-size:.875rem;cursor:pointer;">Save Draft</button>
+                <button type="submit" id="btnSendNotification" style="padding:10px 16px;border-radius:8px;background:var(--primary);color:var(--primary-ink);border:none;font-weight:700;font-size:.875rem;cursor:pointer;">Send Notification</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card card-pad">
+            <h3 style="font-size:.9375rem;font-weight:700;margin-bottom:16px;">Notification History</h3>
+            <div class="table-scroll" style="max-height: 400px; overflow-y: auto;">
+              <table class="tbl" id="notificationHistoryTable">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Target</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody id="notificationHistoryBody">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
@@ -823,6 +929,148 @@ section.block{margin-bottom:40px}
     });
   }
 
+  // --- Push Notifications Management ---
+  function setupNotificationManager() {
+    const form = document.getElementById('notificationForm');
+    const targetInput = document.getElementById('notifTargetInput');
+    const villageContainer = document.getElementById('villageInputContainer');
+
+    // Toggle village input
+    if (targetInput && villageContainer) {
+      targetInput.addEventListener('change', (e) => {
+        if (e.target.value === 'VILLAGE') {
+          villageContainer.style.display = 'block';
+          document.getElementById('notifVillageInput').required = true;
+        } else {
+          villageContainer.style.display = 'none';
+          document.getElementById('notifVillageInput').required = false;
+        }
+      });
+      // trigger initial
+      targetInput.dispatchEvent(new Event('change'));
+    }
+
+    const saveNotification = async (status) => {
+      try {
+        const title = document.getElementById('notifTitleInput').value.trim();
+        const message = document.getElementById('notifMessageInput').value.trim();
+        const category = document.getElementById('notifCategoryInput').value;
+        const priority = document.getElementById('notifPriorityInput').value;
+        const targetType = document.getElementById('notifTargetInput').value;
+        const targetVillage = document.getElementById('notifVillageInput').value.trim();
+        const action = document.getElementById('notifActionInput').value;
+        const actionData = document.getElementById('notifActionDataInput').value;
+
+        if (!title || !message) {
+          alert('Title and Message are required.');
+          return;
+        }
+        if (targetType === 'VILLAGE' && !targetVillage) {
+          alert('Please specify a target village.');
+          return;
+        }
+
+        const user = auth.currentUser;
+        if (!user) {
+          alert("Not authenticated.");
+          return;
+        }
+
+        const notificationData = {
+          title,
+          message,
+          category,
+          priority,
+          targetType,
+          targetVillage: targetType === 'VILLAGE' ? targetVillage : null,
+          action: action !== 'NONE' ? action : null,
+          actionData: actionData || null,
+          status: status, // "DRAFT" or "SENT"
+          createdAt: new Date(),
+          createdBy: user.email
+        };
+
+        const { addDoc, collection } = await import("https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js");
+        await addDoc(collection(db, "notifications"), notificationData);
+
+        alert(`Notification saved as ${status}.`);
+        form.reset();
+        targetInput.dispatchEvent(new Event('change'));
+        loadNotificationHistory();
+      } catch (err) {
+        console.error("Error saving notification:", err);
+        alert(`Failed to save notification: ${err.message}`);
+      }
+    };
+
+    const btnDraft = document.getElementById('btnSaveDraft');
+    const btnSend = document.getElementById('btnSendNotification');
+
+    if (btnDraft) {
+      btnDraft.addEventListener('click', () => saveNotification('DRAFT'));
+    }
+    if (btnSend) {
+      btnSend.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (confirm("Are you sure you want to send this push notification to users?")) {
+          saveNotification('SENT');
+        }
+      });
+    }
+
+    // Wire up sidebar link if JS smooth scroll is wanted, though native anchor works
+    const bellBtn = document.querySelector('.topbar .icon-btn');
+    if(bellBtn) {
+      bellBtn.addEventListener('click', () => {
+        document.getElementById('notifications')?.scrollIntoView({behavior: 'smooth'});
+      });
+    }
+  }
+
+  async function loadNotificationHistory() {
+    const tbody = document.getElementById('notificationHistoryBody');
+    if (!tbody) return;
+
+    try {
+      const { query, collection, orderBy, limit, getDocs } = await import("https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js");
+      const q = query(collection(db, "notifications"), orderBy("createdAt", "desc"), limit(20));
+      const snap = await getDocs(q);
+
+      tbody.innerHTML = '';
+      if (snap.empty) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px;">No notifications yet</td></tr>';
+        return;
+      }
+
+      snap.forEach(docSnap => {
+        const d = docSnap.data();
+        const date = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toLocaleDateString() : 'Unknown';
+
+        let statusHtml = '';
+        if (d.status === 'SENT' || d.status === 'SENT_TO_FCM') {
+          statusHtml = `<span class="status-pill resolved"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg>Sent</span>`;
+        } else if (d.status === 'FAILED') {
+          statusHtml = `<span class="status-pill routed"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-alert"/></svg>Failed</span>`;
+        } else {
+          statusHtml = `<span class="status-pill" style="background:var(--mist);color:var(--muted);">${d.status}</span>`;
+        }
+
+        const targetHtml = d.targetType === 'VILLAGE' ? `Village: ${d.targetVillage}` : 'All Users';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${d.title}</strong><div style="font-size:0.75rem;color:var(--muted);">${d.category}</div></td>
+          <td style="font-size:0.8125rem;">${targetHtml}</td>
+          <td>${statusHtml}</td>
+          <td style="font-size:0.8125rem;color:var(--muted);">${date}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      console.warn("Error loading notifications:", err);
+    }
+  }
+
   // --- Auth UI Management ---
   function showAuthGate() {
     let gate = document.getElementById('authGateOverlay');
@@ -880,6 +1128,8 @@ section.block{margin-bottom:40px}
         setAdminProfile(authorizedAdmins[email]);
         syncDashboard();
         setupParticipantSearch();
+        setupNotificationManager();
+        loadNotificationHistory();
       } else {
         showAuthGate();
         const errEl = document.getElementById('authErrorMsg');
